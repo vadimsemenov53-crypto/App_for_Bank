@@ -1,8 +1,7 @@
 import datetime
-import json
-
 import pandas as pd
 import os
+import requests
 
 from pandas.core.interchange.dataframe_protocol import DataFrame
 
@@ -82,5 +81,8 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict]:
         })
 
     return result
+
+
+def get_exchange_currencies():
 
 print(get_data_top_transactions_from_df(get_data_transactions_from_xlsx()))
