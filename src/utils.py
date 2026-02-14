@@ -66,7 +66,7 @@ def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str | 
         })
 
     return result
-
+print(get_data_transactions_from_df(get_data_transactions_from_xlsx()))
 
 def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str|float]]:
     """Функция возвращает топ 5 транзакций из переданного DataFrame.
@@ -144,5 +144,4 @@ def get_exchange_currencies() -> list[dict]:
     except KeyError as error:
         raise KeyError(f"Ключ не найден: {error}")
 
-print(get_exchange_currencies())
 # {'success': True, 'timestamp': 1771063088, 'base': 'RUB', 'date': '2026-02-14', 'rates': {'USD': 0.012956, 'EUR': 0.010914}}
