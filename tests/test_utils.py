@@ -1,3 +1,5 @@
+from json import JSONDecodeError
+
 import pytest
 from unittest.mock import patch
 import pandas as pd
@@ -91,3 +93,31 @@ def test_get_data_top_transactions_from_df_wrong_type():
 
     with pytest.raises(AttributeError):
         get_data_top_transactions_from_df(222)
+
+
+@patch('builtins.open')
+@patch('src.utils.json.load')
+def test_get_data_currencies_base(mock_json, mock_open):
+    mock_json.return_value = {
+        "user_currencies": ["USD", "EUR", "JPY"],
+        "user_stocks": ["APPLE", "GOOGLE"]
+    }
+    result = get_data_currencies()
+
+    assert result == "USD,EUR,JPY"
+
+    mock_json.assert_called_once()
+    mock_open.assert_called_once()
+
+
+@patch('builtins.open', side_effect=FileNotFoundError)
+def test_get_data_currencies_not_found(mock_open):
+    assert get_data_currencies() == ''
+
+    mock_open.assert_called_once()
+
+
+@patch('builtins.open')
+@patch('src.utils.json.load', side_effect=JSONDecodeError('msg', 'doc', 0))
+def test_get_data_currencies_json_err(mock_json, mock_open):
+    assert get_data_currencies() == ''
