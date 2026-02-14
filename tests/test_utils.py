@@ -1,12 +1,13 @@
 from json import JSONDecodeError
 
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 import pandas as pd
 from pandas.core.methods.selectn import DataFrame
+from requests import RequestException
 
 from src.utils import get_greeting, get_data_transactions_from_xlsx, get_data_transactions_from_df
-from src.utils import get_data_top_transactions_from_df, get_data_currencies
+from src.utils import get_data_top_transactions_from_df, get_data_currencies, get_exchange_currencies
 
 @patch('src.utils.datetime.datetime')
 def test_get_greeting_base_1(mock_get):
@@ -121,3 +122,52 @@ def test_get_data_currencies_not_found(mock_open):
 @patch('src.utils.json.load', side_effect=JSONDecodeError('msg', 'doc', 0))
 def test_get_data_currencies_json_err(mock_json, mock_open):
     assert get_data_currencies() == ''
+
+
+@patch('src.utils.requests.get')
+@patch('src.utils.get_data_currencies', return_value='USD,EUR')
+def test_get_exchange_currencies_base(mock_get_data, mock_requests, data_exchange_currencies):
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = data_exchange_currencies
+
+    mock_requests.return_value = mock_response
+
+    result = get_exchange_currencies()
+
+    assert result == [{'currency': 'USD', 'rate': 77.18}, {'currency': 'EUR', 'rate': 91.63}]
+    mock_get_data.assert_called_once()
+    mock_requests.assetr_called_once()
+
+
+@patch('src.utils.requests.get')
+@patch('src.utils.get_data_currencies', return_value='USD,EUR')
+def test_get_exchange_currencies_wrong_status(mock_get_data, mock_requests, data_exchange_currencies):
+    mock_response = Mock()
+    mock_response.status_code = 400
+    mock_response.return_value = data_exchange_currencies
+
+    mock_requests.return_value = mock_response
+
+    with pytest.raises(RequestException, match="Ошибка API: 400"):
+        get_exchange_currencies()
+
+    mock_get_data.assert_called_once()
+    mock_requests.assert_called_once()
+
+
+@patch('src.utils.requests.get')
+@patch('src.utils.get_data_currencies', return_value='USD,EUR')
+def test_get_exchange_currencies_not_key(mock_get_data, mock_requests):
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {'success': True, 'timestamp': 1771063088,
+            'base': 'RUB', 'date': '2026-02-14'}
+
+    mock_requests.return_value = mock_response
+
+    with pytest.raises(KeyError, match="Ключ не найден: 'rates'"):
+        get_exchange_currencies()
+
+    mock_get_data.assert_called_once()
+    mock_requests.assert_called_once()

@@ -29,3 +29,10 @@ def df_transactions_top_example():
         {"Дата платежа": "2026-02-16", "Сумма операции": 300.0, "Категория": "Переводы", "Описание": "Перевод другу"},
     ])
     return pd.DataFrame(data)
+
+
+@pytest.fixture()
+def data_exchange_currencies():
+    return {'success': True, 'timestamp': 1771063088,
+            'base': 'RUB', 'date': '2026-02-14',
+            'rates': {'USD': 0.012956, 'EUR': 0.010914}}
