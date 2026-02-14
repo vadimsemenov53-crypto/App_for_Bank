@@ -1,9 +1,19 @@
 import datetime
+import json
+from json import JSONDecodeError
+from dotenv import load_dotenv
 import pandas as pd
 import os
 import requests
 
 from pandas.core.interchange.dataframe_protocol import DataFrame
+
+
+path = os.path.dirname(os.path.dirname(__file__))
+path_env = os.path.join(path, '.env')
+load_dotenv(path_env)
+
+API_KEY = os.getenv('API_KEY')
 
 
 def get_greeting() -> str:
@@ -58,7 +68,7 @@ def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str | 
     return result
 
 
-def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict]:
+def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str|float]]:
     """Функция возвращает топ 5 транзакций из переданного DataFrame.
     Структура - список словарей.
     Пример структуры:
@@ -83,6 +93,56 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict]:
     return result
 
 
-def get_exchange_currencies():
+def get_data_currencies() -> str:
+    """Функция читает файл user_settings.json, возвращает строку валют для дальнейшего поиска"""
+    path = os.path.dirname(os.path.dirname(__file__))
+    path_to_file_json = os.path.join(path, 'data/user_settings.json')
 
-print(get_data_top_transactions_from_df(get_data_transactions_from_xlsx()))
+    try:
+        with open(path_to_file_json, 'r') as file:
+            data_currencies = json.load(file)
+
+        str_currencies = ','.join(data_currencies['user_currencies'])
+
+        return str_currencies
+
+    except JSONDecodeError:
+        return ''
+
+    except FileNotFoundError:
+        return ''
+
+
+def get_exchange_currencies() -> list[dict]:
+    """Функция, делает запрос к внешнему API для получения текущего курса валют
+    возвращает список словарей.
+    Валюты для отображения задаются в отдельном файле пользовательских настроек
+    user_settings.json.
+    Курс считается от RUB"""
+    symbols = get_data_currencies()
+
+    try:
+        url = f"https://api.apilayer.com/exchangerates_data/latest?symbols={symbols}&base=RUB"
+        headers = {
+            "apikey": API_KEY
+        }
+
+        response = requests.get(url=url, headers=headers)
+        if response.status_code != 200:
+            raise requests.exceptions.RequestException(f"Ошибка API: {response.status_code}")
+
+        result = []
+
+        for currency, rates in response.json()['rates'].items():
+            result.append({
+                "currency": currency,
+                "rate" : round(1 / rates, 2)
+            })
+
+        return result
+
+    except KeyError as error:
+        raise KeyError(f"Ключ не найден: {error}")
+
+print(get_exchange_currencies())
+# {'success': True, 'timestamp': 1771063088, 'base': 'RUB', 'date': '2026-02-14', 'rates': {'USD': 0.012956, 'EUR': 0.010914}}
