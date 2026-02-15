@@ -34,17 +34,34 @@ def get_greeting() -> str:
         return "Доброй ночи"
 
 
-def get_data_transactions_from_xlsx(path_to_file: str | None = None) -> DataFrame:
+def get_data_transactions_from_xlsx(
+        path_to_file: str | None = None,
+        date: str | None = None) -> DataFrame:
     """Функция возвращает данные о транзакциях из файла XLSX,
     Вы можете передать свой, если он не передан то функция выведет данные
     из файла проекта."""
     if  not path_to_file:
-        path = os.path.dirname(os.path.dirname(__file__))
-        path_to_file = os.path.join(path, 'data/operations.xlsx')
+        path_to_file = os.path.join(PATH, 'data/operations.xlsx')
 
     df = pd.read_excel(path_to_file)
 
-    return df
+    df['Дата операции'] = pd.to_datetime(df['Дата операции'],dayfirst=True).dt.normalize()
+
+    if not date:
+        return df
+
+    end_date = pd.to_datetime(date, dayfirst=True)
+    start_date = end_date.replace(day=1)
+
+    filtered_df = df[
+        (df['Дата операции'] >= start_date) &
+        (df['Дата операции'] <= end_date)
+    ]
+
+    if filtered_df.empty:
+        raise ValueError(f'Нет данных с такой датой: {date}')
+
+    return filtered_df
 
 
 def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str | float]]:

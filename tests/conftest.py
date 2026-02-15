@@ -1,11 +1,31 @@
 import pytest
 import pandas as pd
 
+
 @pytest.fixture()
-def sample_excel(tmp_path):
+def sample_excel_df():
+    df = pd.DataFrame({
+        "Дата операции": [
+            "01.12.2021 10:00:00",
+            "10.12.2021 12:00:00",
+            "25.12.2021 15:00:00"
+        ],
+        "Сумма": [100, 200, 300]
+    })
+    return df
+
+@pytest.fixture()
+def sample_excel_file(tmp_path):
     file_path = tmp_path / 'test.xlsx'
 
-    df = pd.DataFrame({"A": [1, 2, 3]})
+    df = pd.DataFrame({
+        "Дата операции": [
+            "01.12.2021 10:00:00",
+            "10.12.2021 12:00:00",
+            "25.12.2021 15:00:00"
+        ],
+        "Сумма": [100, 200, 300]
+    })
     df.to_excel(file_path, index=False)
 
     return file_path

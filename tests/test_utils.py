@@ -3,6 +3,7 @@ from json import JSONDecodeError
 import pytest
 from unittest.mock import patch, Mock
 import pandas as pd
+from pandas.core.methods.selectn import DataFrame
 from requests import RequestException
 
 from src.utils import get_greeting, get_data_transactions_from_xlsx, get_data_transactions_from_df
@@ -38,16 +39,39 @@ def test_get_greeting_base_4(mock_get):
 
 @patch('src.utils.pd.read_excel')
 def test_get_data_transactions_from_xlsx_base(mock_get):
-    mock_get.return_value = pd.DataFrame({"A": [1, 2]})
+    mock_get.return_value = pd.DataFrame({
+        "Дата операции": ["01.12.2021 10:00:00", "02.12.2021 11:00:00"],
+        "Сумма": [100, 200]
+    })
 
     result = get_data_transactions_from_xlsx("test.xlsx")
 
-    mock_get.assert_called_once_with("test.xlsx")
     assert isinstance(result, pd.DataFrame)
+    assert len(result) == 2
+    mock_get.assert_called_once_with("test.xlsx")
 
 
-def test_get_data_transactions_from_xlsx_new_file(sample_excel):
-    result = get_data_transactions_from_xlsx(str(sample_excel))
+@patch('src.utils.pd.read_excel')
+def test_get_data_transactions_from_xlsx_date(mock_get, sample_excel_df):
+    mock_get.return_value = sample_excel_df
+
+    result = get_data_transactions_from_xlsx("test.xlsx", '03.12.2021')
+
+    assert isinstance(result, pd.DataFrame)
+    assert len(result) == 1
+    mock_get.assert_called_once_with("test.xlsx")
+
+
+@patch('src.utils.pd.read_excel')
+def test_get_data_transactions_from_xlsx_not_date(mock_get, sample_excel_df):
+    mock_get.return_value = sample_excel_df
+
+    with pytest.raises(ValueError, match=f'Нет данных с такой датой: 11.11.2020'):
+        get_data_transactions_from_xlsx("test.xlsx", '11.11.2020')
+
+
+def test_get_data_transactions_from_xlsx_new_file(sample_excel_file):
+    result = get_data_transactions_from_xlsx(str(sample_excel_file))
 
     assert isinstance(result, pd.DataFrame)
     assert len(result) == 3
