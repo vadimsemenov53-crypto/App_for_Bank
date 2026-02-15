@@ -13,7 +13,10 @@ path = os.path.dirname(os.path.dirname(__file__))
 path_env = os.path.join(path, '.env')
 load_dotenv(path_env)
 
-API_KEY = os.getenv('API_KEY')
+API_KEY_1 = os.getenv('API_KEY_1')
+API_KEY_2 = os.getenv('API_KEY_2')
+
+PATH = os.path.dirname(os.path.dirname(__file__))
 
 
 def get_greeting() -> str:
@@ -94,9 +97,9 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, st
 
 
 def get_data_currencies() -> str:
-    """Функция читает файл user_settings.json, возвращает строку валют для дальнейшего поиска"""
-    path = os.path.dirname(os.path.dirname(__file__))
-    path_to_file_json = os.path.join(path, 'data/user_settings.json')
+    """Функция читает файл user_settings.json (забирает список валют),
+    возвращает строку валют для дальнейшего поиска"""
+    path_to_file_json = os.path.join(PATH, 'data/user_settings.json')
 
     try:
         with open(path_to_file_json, 'r') as file:
@@ -124,7 +127,7 @@ def get_exchange_currencies() -> list[dict]:
     try:
         url = f"https://api.apilayer.com/exchangerates_data/latest?symbols={symbols}&base=RUB"
         headers = {
-            "apikey": API_KEY
+            "apikey": API_KEY_1
         }
 
         response = requests.get(url=url, headers=headers)
@@ -143,3 +146,44 @@ def get_exchange_currencies() -> list[dict]:
 
     except KeyError as error:
         raise KeyError(f"Ключ не найден: {error}")
+
+
+def get_data_stocks() -> list[str]:
+    """Функция читает файл user_settings.json (забирает список акций),
+    возвращает строку валют для дальнейшего поиска."""
+    path_to_file_json = os.path.join(PATH, 'data/user_settings.json')
+
+    try:
+        with open(path_to_file_json, 'r') as file:
+            data_stocks = json.load(file)
+
+        list_stocks = data_stocks['user_stocks']
+
+        return list_stocks
+
+    except JSONDecodeError:
+        return []
+
+    except FileNotFoundError:
+        return []
+
+
+def get_stock_price() -> list[dict]:
+    """Функция, делает запрос к внешнему API для получения данных
+    об акциях из https://www.alphavantage.co/"""
+    stocks = get_data_stocks()
+    result = []
+
+    for stock in stocks:
+        url = f"https://finnhub.io/api/v1/quote?symbol={stock}&token={API_KEY_2}"
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            raise requests.exceptions.RequestException(f"Ошибка API: {response.status_code}")
+
+        result.append({
+            "stock" : stock,
+            'price' : response.json()['c'] # ключ -> 'c' - текущая цена
+        })
+
+    return result
