@@ -3,11 +3,11 @@ from json import JSONDecodeError
 import pytest
 from unittest.mock import patch, Mock
 import pandas as pd
-from pandas.core.methods.selectn import DataFrame
 from requests import RequestException
 
 from src.utils import get_greeting, get_data_transactions_from_xlsx, get_data_transactions_from_df
 from src.utils import get_data_top_transactions_from_df, get_data_currencies, get_exchange_currencies
+from src.utils import get_data_stocks, get_stock_price
 
 @patch('src.utils.datetime.datetime')
 def test_get_greeting_base_1(mock_get):
@@ -123,6 +123,9 @@ def test_get_data_currencies_not_found(mock_open):
 def test_get_data_currencies_json_err(mock_json, mock_open):
     assert get_data_currencies() == ''
 
+    mock_json.assert_called_once()
+    mock_open.assert_called_once()
+
 
 @patch('src.utils.requests.get')
 @patch('src.utils.get_data_currencies', return_value='USD,EUR')
@@ -168,6 +171,74 @@ def test_get_exchange_currencies_not_key(mock_get_data, mock_requests):
 
     with pytest.raises(KeyError, match="Ключ не найден: 'rates'"):
         get_exchange_currencies()
+
+    mock_get_data.assert_called_once()
+    mock_requests.assert_called_once()
+
+
+@patch('builtins.open')
+@patch('src.utils.json.load')
+def test_get_data_stocks_base(mock_json, mock_open):
+    mock_json.return_value = {
+        "user_currencies": ["USD", "EUR", "JPY"],
+        "user_stocks": ["APPLE", "GOOGLE"]
+    }
+    result = get_data_stocks()
+
+    assert result == ['APPLE', 'GOOGLE']
+
+    mock_json.assert_called_once()
+    mock_open.assert_called_once()
+
+
+@patch('builtins.open', side_effect=FileNotFoundError)
+def test_get_data_stocks_not_found(mock_open):
+    assert get_data_stocks() == []
+
+    mock_open.assert_called_once()
+
+
+@patch('builtins.open')
+@patch('src.utils.json.load', side_effect=JSONDecodeError('msg', 'doc', 0))
+def test_get_data_stocks_json_err(mock_json, mock_open):
+    assert get_data_stocks() == []
+
+    mock_json.assert_called_once()
+    mock_open.assert_called_once()
+
+
+@patch('src.utils.requests.get')
+@patch('src.utils.get_data_stocks', return_value=["AAPL", "MSFT"])
+def test_get_stock_price_base(mock_get_data, mock_requests):
+    mock_response_1 = Mock()
+    mock_response_1.status_code = 200
+    mock_response_1.json.return_value = {"c": 189.12, "h": 190.45}
+
+    mock_response_2 = Mock()
+    mock_response_2.status_code = 200
+    mock_response_2.json.return_value = {"c": 332.22, "h": 333.33}
+
+    mock_requests.side_effect = [mock_response_1, mock_response_2]
+
+    result = get_stock_price()
+
+    assert result == [{'stock': 'AAPL', 'price': 189.12}, {'stock': 'MSFT', 'price': 332.22}]
+
+    mock_get_data.assert_called_once()
+    assert mock_requests.call_count == 2
+
+
+@patch('src.utils.requests.get')
+@patch('src.utils.get_data_stocks', return_value=["AAPL", "MSFT"])
+def test_get_stock_price_wrong_status(mock_get_data, mock_requests):
+    mock_response = Mock()
+    mock_response.status_code = 404
+    mock_response.json.return_value = {"c": 189.12}
+
+    mock_requests.return_value = mock_response
+
+    with pytest.raises(RequestException, match="Ошибка API: 404"):
+        get_stock_price()
 
     mock_get_data.assert_called_once()
     mock_requests.assert_called_once()
