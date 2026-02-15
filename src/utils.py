@@ -170,7 +170,9 @@ def get_data_stocks() -> list[str]:
 
 def get_stock_price() -> list[dict]:
     """Функция, делает запрос к внешнему API для получения данных
-    об акциях из https://www.alphavantage.co/"""
+    об акциях из https://www.alphavantage.co/
+    Акции для отображения задаются в отдельном файле пользовательских настроек
+    user_settings.json."""
     stocks = get_data_stocks()
     result = []
 
