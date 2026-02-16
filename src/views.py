@@ -1,10 +1,16 @@
 import json
 
-from src.utils import get_greeting, get_data_transactions_from_xlsx
-from src.utils import get_data_transactions_from_df, get_data_top_transactions_from_df
-from src.utils import get_exchange_currencies, get_stock_price
+from src.utils import (
+    get_data_top_transactions_from_df,
+    get_data_transactions_from_df,
+    get_data_transactions_from_xlsx,
+    get_exchange_currencies,
+    get_greeting,
+    get_stock_price,
+)
 
-def build_response_json(date: str | None = None) -> json:
+
+def build_response_json(date: str | None = None) -> str:
     """Функция - конструктор, принимает дату формата(20.05.2020),
     формирует JSON-ответ для фронта.
     Структура ответа:
@@ -16,11 +22,14 @@ def build_response_json(date: str | None = None) -> json:
     df = get_data_transactions_from_xlsx(date=date)
 
     response = {
-        'greeting' : get_greeting(),
-        'cards' : get_data_transactions_from_df(df),
-        'top_transactions' : get_data_top_transactions_from_df(df),
-        'currency_rates': get_exchange_currencies(),
-        'stock_prices': get_stock_price()
+        "greeting": get_greeting(),
+        "cards": get_data_transactions_from_df(df),
+        "top_transactions": get_data_top_transactions_from_df(df),
+        "currency_rates": get_exchange_currencies(),
+        "stock_prices": get_stock_price(),
     }
 
     return json.dumps(response, ensure_ascii=False, indent=4)
+
+
+print(build_response_json("20.04.2019"))

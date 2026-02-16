@@ -1,20 +1,19 @@
 import datetime
 import json
-from json import JSONDecodeError
-from dotenv import load_dotenv
-import pandas as pd
 import os
+from json import JSONDecodeError
+
+import pandas as pd
 import requests
-
-from pandas.core.interchange.dataframe_protocol import DataFrame
-
+from dotenv import load_dotenv
+from pandas import DataFrame
 
 path = os.path.dirname(os.path.dirname(__file__))
-path_env = os.path.join(path, '.env')
+path_env = os.path.join(path, ".env")
 load_dotenv(path_env)
 
-API_KEY_1 = os.getenv('API_KEY_1')
-API_KEY_2 = os.getenv('API_KEY_2')
+API_KEY_1 = os.getenv("API_KEY_1")
+API_KEY_2 = os.getenv("API_KEY_2")
 
 PATH = os.path.dirname(os.path.dirname(__file__))
 
@@ -34,18 +33,16 @@ def get_greeting() -> str:
         return "Доброй ночи"
 
 
-def get_data_transactions_from_xlsx(
-        path_to_file: str | None = None,
-        date: str | None = None) -> DataFrame:
+def get_data_transactions_from_xlsx(path_to_file: str | None = None, date: str | None = None) -> DataFrame:
     """Функция возвращает данные о транзакциях из файла XLSX,
     Вы можете передать свой, если он не передан то функция выведет данные
     из файла проекта."""
-    if  not path_to_file:
-        path_to_file = os.path.join(PATH, 'data/operations.xlsx')
+    if not path_to_file:
+        path_to_file = os.path.join(PATH, "data/operations.xlsx")
 
     df = pd.read_excel(path_to_file)
 
-    df['Дата операции'] = pd.to_datetime(df['Дата операции'],dayfirst=True).dt.normalize()
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], dayfirst=True).dt.normalize()
 
     if not date:
         return df
@@ -53,42 +50,38 @@ def get_data_transactions_from_xlsx(
     end_date = pd.to_datetime(date, dayfirst=True)
     start_date = end_date.replace(day=1)
 
-    filtered_df = df[
-        (df['Дата операции'] >= start_date) &
-        (df['Дата операции'] <= end_date)
-    ]
+    filtered_df = df[(df["Дата операции"] >= start_date) & (df["Дата операции"] <= end_date)]
 
     if filtered_df.empty:
-        raise ValueError(f'Нет данных с такой датой: {date}')
+        raise ValueError(f"Нет данных с такой датой: {date}")
 
     return filtered_df
 
 
-def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str | float]]:
+def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict]:
     """Функция возвращает список словарей из переданного DataFrame
     Пример структуры:  [{
     "last_digits": "5814",
     "total_spent": 1262.00,
       "cashback": 12.62
     }]"""
-    new_df = dataframe.groupby('Номер карты').agg({
-        'Сумма операции' : 'sum',
-        'Кэшбэк' : 'sum'
-    })
+    new_df = dataframe.groupby("Номер карты").agg({"Сумма операции": "sum", "Кэшбэк": "sum"})
 
     result = []
 
     for card_number, row in new_df.iterrows():
-        result.append({
-            'last_digits' : str(card_number)[-4:],
-            'total_spent' : round(float(row['Сумма операции']), 2),
-            'cashback' : float(row['Кэшбэк'])
-        })
+        result.append(
+            {
+                "last_digits": str(card_number)[-4:],
+                "total_spent": round(float(row["Сумма операции"]), 2),
+                "cashback": float(row["Кэшбэк"]),
+            }
+        )
 
     return result
 
 
-def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str|float]]:
+def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict]:
     """Функция возвращает топ 5 транзакций из переданного DataFrame.
     Структура - список словарей.
     Пример структуры:
@@ -96,19 +89,21 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, st
       "amount": 1198.23,
       "category": "Переводы",
       "description": "Перевод Кредитная карта. ТП 10.2 RUR"}]"""
-    new_df = dataframe.sort_values('Сумма операции', ascending=False)
+    new_df = dataframe.sort_values("Сумма операции", ascending=False)
 
     top_trans_df = new_df.head()
 
     result = []
 
     for card_number, rows in top_trans_df.iterrows():
-        result.append({
-            "date" : str(rows['Дата операции'])[:10],
-            "amount" : float(rows['Сумма операции']),
-            "category" : str(rows["Категория"]),
-            "description" : str(rows["Описание"])
-        })
+        result.append(
+            {
+                "date": str(rows["Дата операции"])[:10],
+                "amount": float(rows["Сумма операции"]),
+                "category": str(rows["Категория"]),
+                "description": str(rows["Описание"]),
+            }
+        )
 
     return result
 
@@ -116,21 +111,21 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, st
 def get_data_currencies() -> str:
     """Функция читает файл user_settings.json (забирает список валют),
     возвращает строку валют для дальнейшего поиска"""
-    path_to_file_json = os.path.join(PATH, 'data/user_settings.json')
+    path_to_file_json = os.path.join(PATH, "data/user_settings.json")
 
     try:
-        with open(path_to_file_json, 'r') as file:
+        with open(path_to_file_json, "r") as file:
             data_currencies = json.load(file)
 
-        str_currencies = ','.join(data_currencies['user_currencies'])
+        str_currencies = ",".join(data_currencies["user_currencies"])
 
         return str_currencies
 
     except JSONDecodeError:
-        return ''
+        return ""
 
     except FileNotFoundError:
-        return ''
+        return ""
 
 
 def get_exchange_currencies() -> list[dict]:
@@ -143,9 +138,7 @@ def get_exchange_currencies() -> list[dict]:
 
     try:
         url = f"https://api.apilayer.com/exchangerates_data/latest?symbols={symbols}&base=RUB"
-        headers = {
-            "apikey": API_KEY_1
-        }
+        headers = {"apikey": API_KEY_1}
 
         response = requests.get(url=url, headers=headers)
         if response.status_code != 200:
@@ -153,11 +146,8 @@ def get_exchange_currencies() -> list[dict]:
 
         result = []
 
-        for currency, rates in response.json()['rates'].items():
-            result.append({
-                "currency": currency,
-                "rate" : round(1 / rates, 2)
-            })
+        for currency, rates in response.json()["rates"].items():
+            result.append({"currency": currency, "rate": round(1 / rates, 2)})
 
         return result
 
@@ -168,15 +158,18 @@ def get_exchange_currencies() -> list[dict]:
 def get_data_stocks() -> list[str]:
     """Функция читает файл user_settings.json (забирает список акций),
     возвращает строку валют для дальнейшего поиска."""
-    path_to_file_json = os.path.join(PATH, 'data/user_settings.json')
+    path_to_file_json = os.path.join(PATH, "data/user_settings.json")
 
     try:
-        with open(path_to_file_json, 'r') as file:
+        with open(path_to_file_json, "r") as file:
             data_stocks = json.load(file)
 
-        list_stocks = data_stocks['user_stocks']
+        list_stocks = data_stocks["user_stocks"]
 
-        return list_stocks
+        if isinstance(list_stocks, list):
+            return [str(stock) for stock in list_stocks]
+
+        return []
 
     except JSONDecodeError:
         return []
@@ -200,9 +193,6 @@ def get_stock_price() -> list[dict]:
         if response.status_code != 200:
             raise requests.exceptions.RequestException(f"Ошибка API: {response.status_code}")
 
-        result.append({
-            "stock" : stock,
-            'price' : response.json()['c'] # ключ -> 'c' - текущая цена
-        })
+        result.append({"stock": stock, "price": response.json()["c"]})  # ключ -> 'c' - текущая цена
 
     return result
