@@ -81,7 +81,7 @@ def get_data_transactions_from_df(dataframe: DataFrame) -> list[dict[str, str | 
     for card_number, row in new_df.iterrows():
         result.append({
             'last_digits' : str(card_number)[-4:],
-            'total_spent' : float(row['Сумма операции']),
+            'total_spent' : round(float(row['Сумма операции']), 2),
             'cashback' : float(row['Кэшбэк'])
         })
 
@@ -104,7 +104,7 @@ def get_data_top_transactions_from_df(dataframe: DataFrame) -> list[dict[str, st
 
     for card_number, rows in top_trans_df.iterrows():
         result.append({
-            "date" : str(rows['Дата платежа']),
+            "date" : str(rows['Дата операции'])[:10],
             "amount" : float(rows['Сумма операции']),
             "category" : str(rows["Категория"]),
             "description" : str(rows["Описание"])
