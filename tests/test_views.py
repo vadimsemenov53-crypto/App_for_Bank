@@ -1,38 +1,27 @@
 import json
-from src.views import build_response_json
 from unittest.mock import patch
 
-@patch('src.views.get_stock_price', return_value=[{
-    "stock": "AAPL", "price": 150
-}])
-@patch('src.views.get_exchange_currencies', return_value=[{
-    "currency": "USD", "rate": 75.0
-}])
-@patch('src.views.get_data_top_transactions_from_df', return_value=[{
-    "date": "01.02.2026",
-    "amount": 1000,
-    "category": "Покупки",
-    "description": "Магазин"
-}])
-@patch('src.views.get_data_transactions_from_df', return_value=[{
-    "last_digits": "1234",
-    "total_spent": 1000,
-    "cashback": 10
-}])
+from src.views import build_response_json
+
+
+@patch("src.views.get_stock_price", return_value=[{"stock": "AAPL", "price": 150}])
+@patch("src.views.get_exchange_currencies", return_value=[{"currency": "USD", "rate": 75.0}])
+@patch(
+    "src.views.get_data_top_transactions_from_df",
+    return_value=[{"date": "01.02.2026", "amount": 1000, "category": "Покупки", "description": "Магазин"}],
+)
+@patch(
+    "src.views.get_data_transactions_from_df",
+    return_value=[{"last_digits": "1234", "total_spent": 1000, "cashback": 10}],
+)
 @patch("src.views.get_greeting", return_value="Добрый день")
-@patch('src.views.get_data_transactions_from_xlsx')
+@patch("src.views.get_data_transactions_from_xlsx")
 def test_build_response_json_base(
-        mock_get_xlsx,
-        mock_greeting,
-        mock_cards,
-        mock_top,
-        mock_currencies,
-        mock_stocks,
-        sample_df_views
+    mock_get_xlsx, mock_greeting, mock_cards, mock_top, mock_currencies, mock_stocks, sample_df_views
 ):
     mock_get_xlsx.return_value = sample_df_views
 
-    result_json = build_response_json('06.02.2026')
+    result_json = build_response_json("06.02.2026")
 
     assert isinstance(result_json, str)
 

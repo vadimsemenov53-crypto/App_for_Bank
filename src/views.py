@@ -1,13 +1,7 @@
 import json
 
-from src.utils import (
-    get_data_top_transactions_from_df,
-    get_data_transactions_from_df,
-    get_data_transactions_from_xlsx,
-    get_exchange_currencies,
-    get_greeting,
-    get_stock_price,
-)
+from src.utils import (get_data_top_transactions_from_df, get_data_transactions_from_df,
+                       get_data_transactions_from_xlsx, get_exchange_currencies, get_greeting, get_stock_price)
 
 
 def build_response_json(date: str | None = None) -> str:
@@ -30,4 +24,3 @@ def build_response_json(date: str | None = None) -> str:
     }
 
     return json.dumps(response, ensure_ascii=False, indent=4)
-
