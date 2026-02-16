@@ -31,5 +31,3 @@ def build_response_json(date: str | None = None) -> str:
 
     return json.dumps(response, ensure_ascii=False, indent=4)
 
-
-print(build_response_json("20.04.2019"))
