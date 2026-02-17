@@ -117,9 +117,7 @@ def test_get_data_top_transactions_from_df_base(df_transactions_top_example):
 
 def test_get_data_top_transactions_from_df_wrong_type():
     with pytest.raises(ValueError):
-        get_data_top_transactions_from_df(
-            pd.DataFrame({"Номер": "1234567812345814", "Сумма": 100.0, "Кэшбэк": 1.0})
-        )
+        get_data_top_transactions_from_df(pd.DataFrame({"Номер": "1234567812345814", "Сумма": 100.0, "Кэшбэк": 1.0}))
 
     with pytest.raises(TypeError):
         get_data_top_transactions_from_df(222)
