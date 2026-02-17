@@ -1,6 +1,5 @@
 import datetime
 import json
-import logging
 import os
 from json import JSONDecodeError
 
@@ -9,10 +8,9 @@ import requests
 from dotenv import load_dotenv
 from pandas import DataFrame
 
-from src.logger_config import setup_logging_utils
+from src.logger_config import get_file_logger
 
-setup_logging_utils()
-logger = logging.getLogger(__name__)
+logger = get_file_logger(__name__, 'utils.log')
 
 path = os.path.dirname(os.path.dirname(__file__))
 path_env = os.path.join(path, ".env")
@@ -51,7 +49,8 @@ def get_greeting() -> str:
 def get_data_transactions_from_xlsx(path_to_file: str | None = None, date: str | None = None) -> DataFrame:
     """Функция возвращает данные о транзакциях из файла XLSX,
     Вы можете передать свой, если он не передан то функция выведет данные
-    из файла проекта."""
+    из файла проекта
+    Так же можно передать дату для сортировки по текущей дате от начала месяца."""
     logger.info("Запуск get_data_transactions_from_xlsx.")
     if not path_to_file:
         path_to_file = os.path.join(PATH, "data/operations.xlsx")
@@ -269,7 +268,7 @@ def get_stock_price() -> list[dict]:
             logger.error("Ошибка API: %s", response.status_code)
             raise requests.exceptions.RequestException(f"Ошибка API: {response.status_code}")
 
-        result.append({"stock": stock, "price": response.json()["c"]})  # ключ -> 'c' - текущая цена
+        result.append({"stock": stock, "price": response.json()["c"]})  # ключ -> 'с' - текущая цена
 
     logger.info("Возвращаем полученные данные для %s", stocks)
     logger.info("Завершение работы.")
