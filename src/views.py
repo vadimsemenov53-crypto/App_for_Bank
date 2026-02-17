@@ -43,4 +43,7 @@ def build_response_json(date: str | None = None) -> str:
 
     except Exception as error:
         logger.warning(f"Ошибка при получении данных: {error}")
-        return "Ошибка в формировании отчета."
+        return json.dumps(
+            {"error": "Ошибка в формировании отчета."},
+            ensure_ascii=False,
+        )

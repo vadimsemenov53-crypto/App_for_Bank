@@ -40,3 +40,17 @@ def test_build_response_json_base(
     mock_top.assetr_called_once()
     mock_currencies.assetr_called_once()
     mock_stocks.assetr_called_once()
+
+
+@patch("src.views.get_greeting", side_effect=ValueError)
+@patch("src.views.get_data_transactions_from_xlsx")
+def test_build_response_json_errors(mock_get_xlsx, mock_greeting, sample_df_views):
+    mock_get_xlsx.return_value = sample_df_views
+
+    result_json = build_response_json()
+    result = json.loads(result_json)
+
+    assert result["error"] == "Ошибка в формировании отчета."
+
+    mock_get_xlsx.assetr_called_once()
+    mock_greeting.assetr_called_once()
