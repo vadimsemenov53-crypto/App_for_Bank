@@ -70,6 +70,14 @@ def test_get_data_transactions_from_xlsx_not_date(mock_get, sample_excel_df):
         get_data_transactions_from_xlsx("test.xlsx", "11.11.2020")
 
 
+@patch("src.utils.pd.read_excel", side_effect=FileNotFoundError)
+def test_get_data_transactions_from_xlsx_not_file(mock_read):
+    with pytest.raises(FileNotFoundError):
+        get_data_transactions_from_xlsx()
+
+    mock_read.assert_called_once()
+
+
 def test_get_data_transactions_from_xlsx_new_file(sample_excel_file):
     result = get_data_transactions_from_xlsx(str(sample_excel_file))
 
@@ -110,10 +118,10 @@ def test_get_data_top_transactions_from_df_base(df_transactions_top_example):
 def test_get_data_top_transactions_from_df_wrong_type():
     with pytest.raises(ValueError):
         get_data_top_transactions_from_df(
-            pd.DataFrame({"Номер карты": "1234567812345814", "Сумма операции": 100.0, "Кэшбэк": 1.0})
+            pd.DataFrame({"Номер": "1234567812345814", "Сумма": 100.0, "Кэшбэк": 1.0})
         )
 
-    with pytest.raises(AttributeError):
+    with pytest.raises(TypeError):
         get_data_top_transactions_from_df(222)
 
 
