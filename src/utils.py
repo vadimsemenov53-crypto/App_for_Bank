@@ -10,7 +10,7 @@ from pandas import DataFrame
 
 from src.logger_config import get_file_logger
 
-logger = get_file_logger(__name__, 'utils.log')
+logger = get_file_logger(__name__, "utils.log")
 
 path = os.path.dirname(os.path.dirname(__file__))
 path_env = os.path.join(path, ".env")

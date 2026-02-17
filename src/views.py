@@ -4,7 +4,7 @@ from src.logger_config import get_file_logger
 from src.utils import (get_data_top_transactions_from_df, get_data_transactions_from_df,
                        get_data_transactions_from_xlsx, get_exchange_currencies, get_greeting, get_stock_price)
 
-logger = get_file_logger(__name__, 'views.log')
+logger = get_file_logger(__name__, "views.log")
 
 
 def build_response_json(date: str | None = None) -> str:
