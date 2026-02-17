@@ -47,5 +47,3 @@ def build_response_json(date: str | None = None) -> str:
             {"error": "Ошибка в формировании отчета."},
             ensure_ascii=False,
         )
-
-print(build_response_json("22.01.2020"))
