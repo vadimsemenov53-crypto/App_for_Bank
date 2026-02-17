@@ -1,4 +1,3 @@
-import pytest
 import logging
 
 from src.logger_config import get_file_logger
