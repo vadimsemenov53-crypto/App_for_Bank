@@ -169,7 +169,7 @@ def get_data_currencies() -> str:
 
         str_currencies = ",".join(data_currencies["user_currencies"])
 
-        logger.info("Возвращаем полученные данные: %c", str_currencies)
+        logger.info("Возвращаем полученные данные: %s", str_currencies)
         logger.info("Завершение работы.")
         return str_currencies
 
@@ -209,7 +209,7 @@ def get_exchange_currencies() -> list[dict]:
         for currency, rates in response.json()["rates"].items():
             result.append({"currency": currency, "rate": round(1 / rates, 2)})
 
-        logger.info("Возвращаем курс для валют: %с", symbols)
+        logger.info("Возвращаем курс для валют: %s", symbols)
         logger.info("Завершение работы.")
         return result
 
@@ -232,7 +232,7 @@ def get_data_stocks() -> list[str]:
         list_stocks = data_stocks["user_stocks"]
 
         if isinstance(list_stocks, list):
-            logger.info("Возвращаем полученные данные: %c", list_stocks)
+            logger.info("Возвращаем полученные данные: %s", list_stocks)
             logger.info("Завершение работы.")
             return [str(stock) for stock in list_stocks]
 
@@ -259,18 +259,18 @@ def get_stock_price() -> list[dict]:
 
     result = []
 
+    logger.info("Обращение к внешнему API-сервису (https://finnhub.io)")
     for stock in stocks:
         url = f"https://finnhub.io/api/v1/quote?symbol={stock}&token={API_KEY_2}"
 
-        logger.info("Обращение к внешнему API-сервису (https://finnhub.io)")
         response = requests.get(url)
 
         if response.status_code != 200:
-            logger.error("Ошибка API: %c", response.status_code)
+            logger.error("Ошибка API: %s", response.status_code)
             raise requests.exceptions.RequestException(f"Ошибка API: {response.status_code}")
 
         result.append({"stock": stock, "price": response.json()["c"]})  # ключ -> 'c' - текущая цена
 
-    logger.info("Возвращаем полученные данные для %c", stocks)
+    logger.info("Возвращаем полученные данные для %s", stocks)
     logger.info("Завершение работы.")
     return result
