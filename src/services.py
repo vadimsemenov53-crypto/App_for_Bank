@@ -31,12 +31,17 @@ def get_transactions_with_phones(dataframe: DataFrame) -> str:
                 row["Дата операции"] = row["Дата операции"].strftime("%d.%m.%Y")  # Преобразовать дату в строку
                 filtered_dict.append(row)
 
+        if len(filtered_dict) == 0:
+            return json.dumps([{
+                "Транзакции" : "Нет транзакций содержащих мобильные телефоны."
+            }], ensure_ascii=False, indent=2)
+
         logger.info("Сформированный JSON-ответ, содержит: %s транзакций", len(filtered_dict))
         return json.dumps(filtered_dict, ensure_ascii=False, indent=2)
 
-    except Exception as error:
-        logger.error("Произошла ошибка: %s", error)
+    except KeyError as error:
+        logger.error("Произошла ошибка, KeyError, не найден ключ : %s", error)
         return json.dumps(
-            {"error": "Ошибка в формировании отчета."},
+            [{'Ошибка': f"KeyError, не найден ключ : {error}"}],
             ensure_ascii=False,
         )

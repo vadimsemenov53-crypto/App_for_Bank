@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from datetime import datetime
 
 
 @pytest.fixture()
@@ -76,3 +77,24 @@ def sample_df_views():
             "Описание": ["Магазин", "Перевод другу"],
         }
     )
+
+
+@pytest.fixture()
+def data_services_df():
+    return pd.DataFrame([
+        {
+            "Дата операции": datetime(2024, 1, 10),
+            "Описание": "Оплата по номеру +7 999 123-45-67",
+            "Сумма": 1500,
+        },
+        {
+            "Дата операции": datetime(2024, 1, 11),
+            "Описание": "Покупка в магазине",
+            "Сумма": 2300,
+        },
+        {
+            "Дата операции": datetime(2024, 1, 12),
+            "Описание": "Перевод на телефон 89161234567",
+            "Сумма": 500,
+        },
+    ])
