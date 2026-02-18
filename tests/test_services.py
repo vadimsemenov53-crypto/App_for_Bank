@@ -17,8 +17,8 @@ def test_has_phone_base(phone_number, expected):
     assert has_phone(phone_number) == expected
 
 
-def test_get_transactions_with_phones_base(data_services_df):
-    result_json = get_transactions_with_phones(data_services_df)
+def test_get_transactions_with_phones_base(data_services):
+    result_json = get_transactions_with_phones(data_services)
 
     result = json.loads(result_json)
 
@@ -29,11 +29,12 @@ def test_get_transactions_with_phones_base(data_services_df):
     }]
 
 
-def test_get_transactions_with_phones_not_phone(data=pd.DataFrame([{
-            "Дата операции": datetime(2024, 1, 11),
-            "Описание": "Покупка в магазине",
-            "Сумма": 2300,
-}])):
+def test_get_transactions_with_phones_not_phone():
+    data = [{
+        "Дата операции": "11.01.2024",
+        "Описание": "Покупка в магазине",
+        "Сумма": 2300,
+    }]
     result_json = get_transactions_with_phones(data)
 
     result = json.loads(result_json)
@@ -43,13 +44,10 @@ def test_get_transactions_with_phones_not_phone(data=pd.DataFrame([{
             }]
 
 
-def test_get_transactions_with_key_errors(data=pd.DataFrame([{
-            "Дата операции": datetime(2024, 1, 11),
-            "Данные": "Покупка в магазине",
-            "Сумма": 2300,
-}])):
+def test_get_transactions_with_key_errors():
+    data = [1233, 222 , 'Описание']
     result_json = get_transactions_with_phones(data)
 
     result = json.loads(result_json)
 
-    assert result == [{'Ошибка': "KeyError, не найден ключ : 'Описание'"}]
+    assert result == [{"'int' object has no attribute 'get'": 'Ошибка в формировании отчета.'}]
