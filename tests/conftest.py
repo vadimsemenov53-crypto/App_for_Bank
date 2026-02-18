@@ -1,6 +1,8 @@
 import pandas as pd
 import pytest
 
+from datetime import datetime
+
 
 @pytest.fixture()
 def sample_excel_df():
@@ -97,3 +99,13 @@ def data_services():
             "Сумма": 500,
         },
     ]
+
+
+@pytest.fixture()
+def reports_df():
+    return pd.DataFrame([
+        {"Дата операции": datetime(2024, 1, 1), "Категория": "Еда", "Сумма": 1500},
+        {"Дата операции": datetime(2024, 2, 15), "Категория": "Еда", "Сумма": 2000},
+        {"Дата операции": datetime(2024, 3, 10), "Категория": "Такси", "Сумма": 800},
+        {"Дата операции": datetime(2026, 2, 1), "Категория": "Еда", "Сумма": 500},
+    ])

@@ -40,7 +40,7 @@ def test_get_transactions_with_phones_not_phone():
     assert result == [{"Транзакции": "Нет транзакций содержащих мобильные телефоны."}]
 
 
-def test_get_transactions_with_key_errors():
+def test_get_transactions_with_errors():
     data = [1233, 222, "Описание"]
     result_json = get_transactions_with_phones(data)
 
