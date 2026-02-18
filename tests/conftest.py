@@ -1,6 +1,5 @@
 import pandas as pd
 import pytest
-from datetime import datetime
 
 
 @pytest.fixture()

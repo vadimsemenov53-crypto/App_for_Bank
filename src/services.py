@@ -24,19 +24,18 @@ def get_transactions_with_phones(transactions: list[dict]) -> str:
 
         logger.info("Фильтруем переданный список, ищем номера телефонов.")
         for transaction in transactions:
-            description = str(transaction.get('Описание', ''))
+            description = str(transaction.get("Описание", ""))
 
             if re.search(PHONE_PATTERN, description):
                 filtered_transactions.append(transaction)
 
         if not filtered_transactions:
-            return json.dumps([{
-                "Транзакции" : "Нет транзакций содержащих мобильные телефоны."
-            }], ensure_ascii=False, indent=2)
+            return json.dumps(
+                [{"Транзакции": "Нет транзакций содержащих мобильные телефоны."}], ensure_ascii=False, indent=2
+            )
 
         logger.info("Сформированный JSON-ответ, содержит: %s транзакций", len(filtered_transactions))
         return json.dumps(filtered_transactions, ensure_ascii=False, indent=2)
-
 
     except Exception as error:
         logger.error("Ошибка при обработке транзакций: %s", error)
