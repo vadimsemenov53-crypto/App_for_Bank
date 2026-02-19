@@ -1,11 +1,10 @@
 import json
-from datetime import datetime
-
 import pandas as pd
 import pytest
-from pandas import DataFrame
+import src.reports as reports
 
-from src.reports import spending_by_category
+from datetime import datetime
+from src.reports import spending_by_category, save_reports
 from tests.conftest import reports_df
 
 
@@ -45,3 +44,56 @@ def test_spending_by_category_wrong_df():
     }])
     with pytest.raises(ValueError):
         spending_by_category(reports_df, '')
+
+
+def test_save_reports_base(tmp_path):
+    @save_reports('test_reports')
+    def example_report():
+        return pd.DataFrame({"a": [1, 2]})
+
+    reports.PATH = tmp_path
+
+    example_report()
+
+    file_path = tmp_path / "data" / "test_reports.json"
+
+    assert file_path.exists()
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert "a" in data
+    assert data["a"] == {'0': 1, '1': 2}
+
+
+def test_save_reports_error(tmp_path):
+    @save_reports()
+    def example_report():
+        raise ValueError("ERROR")
+
+    reports.PATH = tmp_path
+
+    example_report()
+
+    file_path = tmp_path / "data" / "reports.json"
+
+    assert file_path.exists()
+
+    with open(file_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["Тип ошибки"] == "ValueError"
+
+
+def test_save_reports_erro():
+    @save_reports()
+    def example_report():
+        return {"a": [1, 2]}
+
+    example_report()
+
+    with open("/Users/vadimsemenov/PycharmProjects/App_for_Bank/data/reports.json",
+              "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    assert data["a"] == [1, 2]
