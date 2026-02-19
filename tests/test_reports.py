@@ -1,5 +1,13 @@
+import json
 from datetime import datetime
+
+import pandas as pd
+import pytest
+from pandas import DataFrame
+
 from src.reports import spending_by_category
+from tests.conftest import reports_df
+
 
 def test_spending_by_category_base(reports_df):
     result_df = spending_by_category(reports_df, 'Еда','10.03.2024')
@@ -20,3 +28,20 @@ def test_spending_by_category_no_date(reports_df):
     assert result == {'Дата операции': {3: datetime(2026,2,1)},
                       'Категория': {3: 'Еда'},
                       'Сумма': {3: 500}}
+
+
+def test_spending_by_category_non_cat(reports_df):
+    result_df = spending_by_category(reports_df, '','10.03.2024')
+
+    result = result_df.to_dict()
+    assert result == {'Дата операции': {}, 'Категория': {}, 'Сумма': {}}
+
+
+def test_spending_by_category_wrong_df():
+    reports_df = pd.DataFrame([{
+        'Операция' : datetime(2026, 2,5),
+        'Оплата' : 2222,
+        'Кэшбек' : 0.2
+    }])
+    with pytest.raises(ValueError):
+        spending_by_category(reports_df, '')
