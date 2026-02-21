@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import datetime
 from functools import wraps
 from typing import Any, Callable, Optional
@@ -12,6 +13,12 @@ from src.logger_config import get_file_logger
 logger = get_file_logger(__name__, "reports.log")
 
 PATH = os.path.dirname(os.path.dirname(__file__))
+
+def sanitize_filename(name: str) -> str:
+    name = name.strip().lower()
+    name = name.replace(" ", "_")
+    name = re.sub(r"[^a-zA-Z0-9_-]", "", name)
+    return name or "reports"
 
 
 def save_reports(filename: str | None = None) -> Callable[..., Any]:
@@ -28,39 +35,25 @@ def save_reports(filename: str | None = None) -> Callable[..., Any]:
             save_enabled = kwargs.pop("save", False)
             user_file_name = kwargs.pop("file_name", None)
 
-            try:
-                result = func(*args, **kwargs)
-                logger.info("Отчет %s сформирован", func.__name__)
+            result = func(*args, **kwargs)
 
-                if isinstance(result, pd.DataFrame):
-                    data_to_save = result.to_dict()
-                else:
-                    data_to_save = result
+            if not save_enabled:
+                return result
 
-                if not save_enabled:
-                    return result
+            file_name = sanitize_filename(user_file_name or filename or "reports")
 
-            except Exception as error:
-                logger.exception("Ошибка в отчете %s", func.__name__)
-                data_to_save = {
-                    "Функция": f"{func.__name__}",
-                    "Аргументы": [str(type(arg)) for arg in args],
-                    "Ключевые аргументы": f"{kwargs}",
-                    "Тип ошибки": f"{type(error).__name__}",
-                }
-                return data_to_save
-
-            file_name = user_file_name or filename or "reports"
-
-            file_name = file_name.replace(" ", "_").strip().lower()
-
-            path_to_file = os.path.join(PATH, f"data/{file_name}.json")
-
+            path_to_file = os.path.join(PATH, "data", f"{file_name}.json")
             os.makedirs(os.path.dirname(path_to_file), exist_ok=True)
 
-            logger.info("Отчет успешно сохранен в %s", path_to_file)
+            if isinstance(result, pd.DataFrame):
+                data_to_save = result.to_dict(orient="records")
+            else:
+                data_to_save = result
+
             with open(path_to_file, "w", encoding="utf-8") as file:
-                json.dump(data_to_save, file, ensure_ascii=False, indent=2, default=str)
+                json.dump(data_to_save, file, indent=2, ensure_ascii=False, default=str)
+
+            logger.info("Отчет успешно сохранен в %s", path_to_file)
 
             return result
 
