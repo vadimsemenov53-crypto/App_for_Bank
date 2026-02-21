@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 import src.reports as reports
-from src.reports import save_reports, spending_by_category, sanitize_filename
+from src.reports import sanitize_filename, save_reports, spending_by_category
 
 
 def test_spending_by_category_base(reports_df):
@@ -53,7 +53,7 @@ def test_save_reports_base(tmp_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    assert data == [{'a': 1}, {'a': 2}]
+    assert data == [{"a": 1}, {"a": 2}]
 
 
 def test_save_reports_error(tmp_path):
@@ -64,17 +64,16 @@ def test_save_reports_error(tmp_path):
     reports.PATH = tmp_path
 
     with pytest.raises(ValueError):
-        example_report(save=True, file_name='')
+        example_report(save=True, file_name="")
 
 
 @pytest.mark.parametrize(
     "file_name, expected",
     [
-        ("Market reports", 'market_reports'),
+        ("Market reports", "market_reports"),
         ("", "reports"),
         ("name_file", "name_file"),
-    ]
+    ],
 )
 def tests_sanitize_filename(file_name, expected):
     assert sanitize_filename(file_name) == expected
-
