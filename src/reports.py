@@ -14,6 +14,7 @@ logger = get_file_logger(__name__, "reports.log")
 
 PATH = os.path.dirname(os.path.dirname(__file__))
 
+
 def sanitize_filename(name: str) -> str:
     """Функция принимает имя файла и фильтрует его от мусора.
     Возвращает очищенное имя."""
