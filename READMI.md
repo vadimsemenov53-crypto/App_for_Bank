@@ -109,7 +109,26 @@ print(json_report)
 - Фильтрация транзакций в spending_by_category.
 - Поиск телефонов в get_transactions_with_phones.
 - Очистка имен файлов в sanitize_filename.
-
+```
+Name                          Stmts   Miss  Cover   Missing
+-----------------------------------------------------------
+src/__init__.py                   0      0   100%
+src/logger_config.py             13      0   100%
+src/reports.py                   58      1    98%   54
+src/services.py                  23      0   100%
+src/utils.py                    156      4    97%   136-138, 238
+src/views.py                     17      0   100%
+tests/__init__.py                 0      0   100%
+tests/conftest.py                33      0   100%
+tests/test_logger_config.py      10      0   100%
+tests/test_reports.py            42      0   100%
+tests/test_services.py           20      0   100%
+tests/test_utils.py             162      0   100%
+tests/test_views.py              35      0   100%
+-----------------------------------------------------------
+TOTAL                           569      5    99%
+=================== 43 passed in 0.25s ===================
+```
 ### 💡 Особенности
 - Все функции работают с pandas.DataFrame.
 - Декоратор save_reports поддерживает:
