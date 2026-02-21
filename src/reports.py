@@ -25,6 +25,9 @@ def save_reports(filename: str | None = None) -> Callable[..., Any]:
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
+            save_enabled = kwargs.pop("save", False)
+            user_file_name = kwargs.pop("file_name", None)
+
             try:
                 result = func(*args, **kwargs)
                 logger.info("Отчет %s сформирован", func.__name__)
@@ -34,16 +37,22 @@ def save_reports(filename: str | None = None) -> Callable[..., Any]:
                 else:
                     data_to_save = result
 
+                if not save_enabled:
+                    return result
+
             except Exception as error:
                 logger.exception("Ошибка в отчете %s", func.__name__)
                 data_to_save = {
                     "Функция": f"{func.__name__}",
-                    "Аргументы": f"{args}",
+                    "Аргументы": [str(type(arg)) for arg in args],
                     "Ключевые аргументы": f"{kwargs}",
                     "Тип ошибки": f"{type(error).__name__}",
                 }
+                return data_to_save
 
-            file_name = filename if filename else "reports"
+            file_name = user_file_name or filename or "reports"
+
+            file_name = file_name.replace(" ", "_").strip().lower()
 
             path_to_file = os.path.join(PATH, f"data/{file_name}.json")
 
@@ -51,15 +60,16 @@ def save_reports(filename: str | None = None) -> Callable[..., Any]:
 
             logger.info("Отчет успешно сохранен в %s", path_to_file)
             with open(path_to_file, "w", encoding="utf-8") as file:
-                json.dump(data_to_save, file, ensure_ascii=False, indent=2)
+                json.dump(data_to_save, file, ensure_ascii=False, indent=2, default=str)
 
-            return data_to_save
+            return result
 
         return wrapper
 
     return decorator
 
 
+@save_reports()
 def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> pd.DataFrame:
     """Функция возвращает траты по заданной категории
     за последние три месяца (от переданной даты)
