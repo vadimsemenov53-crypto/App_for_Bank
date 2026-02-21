@@ -15,6 +15,8 @@ logger = get_file_logger(__name__, "reports.log")
 PATH = os.path.dirname(os.path.dirname(__file__))
 
 def sanitize_filename(name: str) -> str:
+    """Функция принимает имя файла и фильтрует его от мусора.
+    Возвращает очищенное имя."""
     name = name.strip().lower()
     name = name.replace(" ", "_")
     name = re.sub(r"[^a-zA-Z0-9_-]", "", name)
@@ -89,6 +91,9 @@ def spending_by_category(transactions: pd.DataFrame, category: str, date: Option
         filtered_df = df[(df["Дата операции"] >= start_date) & (df["Дата операции"] <= end_date)]
 
         result = filtered_df[filtered_df["Категория"] == category]
+
+        if result.empty:
+            raise ValueError("Нет данных за указанный период")
 
         logger.info("Возвращаем готовый DateFrame. Завершение работы.")
         return pd.DataFrame(result)

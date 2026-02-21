@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 import src.reports as reports
-from src.reports import save_reports, spending_by_category
+from src.reports import save_reports, spending_by_category, sanitize_filename
 
 
 def test_spending_by_category_base(reports_df):
@@ -27,10 +27,8 @@ def test_spending_by_category_no_date(reports_df):
 
 
 def test_spending_by_category_non_cat(reports_df):
-    result_df = spending_by_category(reports_df, "", "10.03.2024")
-
-    result = result_df.to_dict()
-    assert result == {"Дата операции": {}, "Категория": {}, "Сумма": {}}
+    with pytest.raises(ValueError):
+        spending_by_category(reports_df, "", "10.03.2024")
 
 
 def test_spending_by_category_wrong_df():
@@ -46,7 +44,7 @@ def test_save_reports_base(tmp_path):
 
     reports.PATH = tmp_path
 
-    example_report()
+    example_report(save=True)
 
     file_path = tmp_path / "data" / "test_reports.json"
 
@@ -55,8 +53,7 @@ def test_save_reports_base(tmp_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    assert "a" in data
-    assert data["a"] == {"0": 1, "1": 2}
+    assert data == [{'a': 1}, {'a': 2}]
 
 
 def test_save_reports_error(tmp_path):
@@ -66,26 +63,18 @@ def test_save_reports_error(tmp_path):
 
     reports.PATH = tmp_path
 
-    example_report()
-
-    file_path = tmp_path / "data" / "reports.json"
-
-    assert file_path.exists()
-
-    with open(file_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    assert data["Тип ошибки"] == "ValueError"
+    with pytest.raises(ValueError):
+        example_report(save=True, file_name='')
 
 
-def test_save_reports_erro():
-    @save_reports()
-    def example_report():
-        return {"a": [1, 2]}
+@pytest.mark.parametrize(
+    "file_name, expected",
+    [
+        ("Market reports", 'market_reports'),
+        ("", "reports"),
+        ("name_file", "name_file"),
+    ]
+)
+def tests_sanitize_filename(file_name, expected):
+    assert sanitize_filename(file_name) == expected
 
-    example_report()
-
-    with open("/Users/vadimsemenov/PycharmProjects/App_for_Bank/data/reports.json", "r", encoding="utf-8") as f:
-        data = json.load(f)
-
-    assert data["a"] == [1, 2]
