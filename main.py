@@ -1,5 +1,6 @@
 from src.logger_config import get_file_logger
 from src.reports import spending_by_category
+from src.services import get_transactions_with_phones
 from src.utils import get_data_transactions_from_xlsx
 from src.views import build_response_json
 
@@ -20,6 +21,7 @@ def main() -> None:
             Выберите действие:
             1 — Анализ операций
             2 — Отчет по категории за 3 месяца
+            3 - Поиск номеров
             0 — Выход
             """)
 
@@ -71,6 +73,25 @@ def main() -> None:
 
                 logger.info("Отчет сформирован -> вывод в консоль")
                 print(report)
+
+            elif choice == "3":
+                print("""Программа: Передайте дату в формате: 20.05.2020
+                Будет произведен анализ данных за начало месяца и до переданной даты
+                Вы можете оставить окно пустым, в таком случае будет произведен анализ
+                всего файла целиком""")
+
+                date_user = str(input("Пользователь: "))
+                logger.info("Пользователь выбрал дату: %s", date_user or "для всего файла")
+
+                df = get_data_transactions_from_xlsx(date=date_user)
+                df["Дата операции"] = df["Дата операции"].astype(str)
+                df["Дата платежа"] = df["Дата платежа"].astype(str)
+
+                list_transactions = df.to_dict(orient="records")
+
+                logger.info("Отчет сформирован -> вывод в консоль")
+                result = get_transactions_with_phones(list_transactions)
+                print(result)
 
             elif choice == "0":
                 logger.info("Завершение работы программы.")
